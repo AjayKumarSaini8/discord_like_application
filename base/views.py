@@ -91,11 +91,14 @@ def room(request, pk):
     participants = room.participants.all()
 
     if request.method == "POST":
-        message = Message.objects.create(
-            user=request.user, room=room, body=request.POST.get("body")
-        )
-        room.participants.add(request.user)
-        return redirect("room", pk=room.id)
+        if request.user.is_authenticated:
+            message = Message.objects.create(
+                user=request.user, room=room, body=request.POST.get("body")
+            )
+            room.participants.add(request.user)
+            return redirect("room", pk=room.id)
+        else:
+            return redirect("login")
     context = {
         "room": room,
         "room_messages": room_messages,
@@ -181,8 +184,14 @@ def deleteMessage(request, pk):
         return HttpResponse("Your are not allowed here!")
 
     if request.method == "POST":
+        room = message.room
         message.delete()
-        return redirect("home")
+        user_messages_count = room.message_set.filter(user=request.user).count()
+
+        if user_messages_count == 0:
+            # If no more messages, remove the user from participants
+            room.participants.remove(request.user)
+        return redirect("room", pk=room.id)
     return render(request, "base/delete.html", {"obj": message})
 
 
