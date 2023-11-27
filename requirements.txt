@@ -1,5 +1,0 @@
-pip : 23.3.1
-django: 4.2.7
-python: 3.12
-Requires: asgiref, sqlparse, tzdata
-Required-by: django-cors-headers, djangorestframework
